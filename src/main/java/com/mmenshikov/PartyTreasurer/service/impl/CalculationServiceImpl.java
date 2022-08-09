@@ -36,15 +36,7 @@ public class CalculationServiceImpl implements CalculationService {
   public List<Duty> calcDuties(List<CalculationsByParticipant> calculationsByParticipants) {
     var participantsWithDuties = calculationsByParticipants
         .stream()
-        .map(calculationsByParticipant -> new Participant()
-            .setName(calculationsByParticipant.getName())
-            .setTotal(
-                calculationsByParticipant
-                    .getProductMap()
-                    .values()
-                    .stream()
-                    .reduce(BigDecimal::add)
-                    .get()))
+        .map(this::mapToParticipant)
         .collect(Collectors.toList());
 
     var result = new ArrayList<Duty>();
@@ -54,29 +46,45 @@ public class CalculationServiceImpl implements CalculationService {
 
       participantsWithDuties.stream()
           .filter(this::isDebtor)
-          .forEach(participant -> {
-            var notDebtor = participantsWithDuties.stream()
-                .filter(this::isNotDebtor)
-                .findFirst().get();
-            if (participant.getTotal().abs().compareTo(notDebtor.getTotal()) <= 0) {
-              result.add(new Duty()
-                  .setFrom(participant.getName())
-                  .setTo(notDebtor.getName())
-                  .setDuty(participant.getTotal().abs()));
-              notDebtor.setTotal(notDebtor.getTotal().add(participant.getTotal()));
-              participant.setTotal(BigDecimal.ZERO);
-              return;
-            }
-            result.add(new Duty()
-                .setFrom(participant.getName())
-                .setTo(notDebtor.getName())
-                .setDuty(notDebtor.getTotal()));
-            participant.setTotal(participant.getTotal().add(notDebtor.getTotal()));
-            notDebtor.setTotal(BigDecimal.ZERO);
-          });
+          .forEach(
+              participant -> calcDutyByDebtor(participant, participantsWithDuties, result));
     }
 
     return result;
+  }
+
+  private void calcDutyByDebtor(Participant debtor,
+      List<Participant> participantsWithDuties, List<Duty> duties) {
+    var notDebtor = participantsWithDuties.stream()
+        .filter(this::isNotDebtor)
+        .findFirst().get();
+    if (debtor.getTotal().abs().compareTo(notDebtor.getTotal()) <= 0) {
+      duties.add(new Duty()
+          .setFrom(debtor.getName())
+          .setTo(notDebtor.getName())
+          .setDuty(debtor.getTotal().abs()));
+      notDebtor.setTotal(notDebtor.getTotal().add(debtor.getTotal()));
+      debtor.setTotal(BigDecimal.ZERO);
+      return;
+    }
+    duties.add(new Duty()
+        .setFrom(debtor.getName())
+        .setTo(notDebtor.getName())
+        .setDuty(notDebtor.getTotal()));
+    debtor.setTotal(debtor.getTotal().add(notDebtor.getTotal()));
+    notDebtor.setTotal(BigDecimal.ZERO);
+  }
+
+  private Participant mapToParticipant(final CalculationsByParticipant calculationsByParticipant) {
+    return new Participant()
+        .setName(calculationsByParticipant.getName())
+        .setTotal(
+            calculationsByParticipant
+                .getProductMap()
+                .values()
+                .stream()
+                .reduce(BigDecimal::add)
+                .get());
   }
 
   private boolean isDebtor(Participant participant) {

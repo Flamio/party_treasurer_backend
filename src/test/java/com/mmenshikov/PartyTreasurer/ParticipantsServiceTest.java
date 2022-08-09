@@ -74,7 +74,7 @@ class ParticipantsServiceTest {
                 .setPrice(BigDecimal.valueOf(1000))))
         .setPurchases(Map.of("petya", Set.of("pivo"), "vasya", Set.of("vino")))
         .setUses(Map.of("petya", Set.of("pivo"), "vasya", Set.of("vino", "pivo"), "roma",
-            Set.of("vino", "pivo"), "andr", Set.of("vino", "pivo")));
+            Set.of("vino", "pivo"), "andr", Set.of("pivo")));
 
     var participants = service.calcByParticipant(inputDto);
     var duties = service.calcDuties(participants);
