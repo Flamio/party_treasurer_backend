@@ -1,6 +1,7 @@
 package com.mmenshikov.PartyTreasurer.service;
 
 import com.mmenshikov.PartyTreasurer.domain.dto.CalculationsByParticipant;
+import com.mmenshikov.PartyTreasurer.domain.dto.DutiesWithCalculationsDto;
 import com.mmenshikov.PartyTreasurer.domain.dto.Duty;
 import com.mmenshikov.PartyTreasurer.domain.dto.InputDto;
 import java.util.List;
@@ -15,4 +16,7 @@ public interface CalculationService {
   List<CalculationsByParticipant> calcByParticipant(InputDto dto);
 
   List<Duty> calcDuties(List<CalculationsByParticipant> calculationsByParticipants);
+
+  DutiesWithCalculationsDto calcAll(InputDto dto);
+
 }

@@ -11,15 +11,24 @@ import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Created: 09.08.2022 17:13
  *
  * @author MMenshikov
  */
+@SpringBootTest
+@RunWith(SpringRunner.class)
+@ActiveProfiles("test")
 class ParticipantsServiceTest {
 
-  private CalculationService service = new CalculationServiceImpl();
+  @Autowired
+  private CalculationService service;
 
   @Test
   void calculationByParticipantTest() {

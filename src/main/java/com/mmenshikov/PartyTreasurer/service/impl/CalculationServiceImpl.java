@@ -2,6 +2,7 @@ package com.mmenshikov.PartyTreasurer.service.impl;
 
 import com.mmenshikov.PartyTreasurer.domain.Participant;
 import com.mmenshikov.PartyTreasurer.domain.dto.CalculationsByParticipant;
+import com.mmenshikov.PartyTreasurer.domain.dto.DutiesWithCalculationsDto;
 import com.mmenshikov.PartyTreasurer.domain.dto.Duty;
 import com.mmenshikov.PartyTreasurer.domain.dto.InputDto;
 import com.mmenshikov.PartyTreasurer.domain.dto.InputDto.Product;
@@ -14,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,7 +25,10 @@ import org.springframework.stereotype.Service;
  * @author MMenshikov
  */
 @Service
+@RequiredArgsConstructor
 public class CalculationServiceImpl implements CalculationService {
+
+  private final Validator validator;
 
   @Override
   public List<CalculationsByParticipant> calcByParticipant(InputDto dto) {
@@ -51,6 +57,15 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     return result;
+  }
+
+  @Override
+  public DutiesWithCalculationsDto calcAll(final InputDto dto) {
+    var calculations = calcByParticipant(dto);
+    var duties = calcDuties(calculations);
+    return new DutiesWithCalculationsDto()
+        .setCalculations(calculations)
+        .setDuties(duties);
   }
 
   private void calcDutyByDebtor(Participant debtor,
