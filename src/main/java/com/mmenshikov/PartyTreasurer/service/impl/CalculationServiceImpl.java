@@ -28,8 +28,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CalculationServiceImpl implements CalculationService {
 
-  private final Validator validator;
-
   @Override
   public List<CalculationsByParticipant> calcByParticipant(InputDto dto) {
     return dto.getParticipants()
@@ -48,7 +46,8 @@ public class CalculationServiceImpl implements CalculationService {
     var result = new ArrayList<Duty>();
 
     while (participantsWithDuties.stream()
-        .anyMatch(this::isDebtor)) {
+        .anyMatch(this::isDebtor) && participantsWithDuties.stream()
+        .anyMatch(this::isNotDebtor)) {
 
       participantsWithDuties.stream()
           .filter(this::isDebtor)
@@ -134,14 +133,14 @@ public class CalculationServiceImpl implements CalculationService {
 
     productMap.put(usingProductName,
         calcNewPrice(participantProductPrice, allUsesSize, dto.getProducts(),
-            usingProductName).setScale(2, RoundingMode.HALF_UP));
+            usingProductName).setScale(5, RoundingMode.HALF_UP));
   }
 
   private BigDecimal calcNewPrice(final BigDecimal participantProductPrice, long allUsesSize,
       final List<Product> products, final String usingProductName) {
     if (participantProductPrice != null) {
       return participantProductPrice.subtract(
-          participantProductPrice.setScale(2, RoundingMode.HALF_UP).divide(
+          participantProductPrice.setScale(5, RoundingMode.HALF_UP).divide(
               BigDecimal.valueOf(allUsesSize), RoundingMode.HALF_UP));
     }
 
@@ -149,7 +148,7 @@ public class CalculationServiceImpl implements CalculationService {
         .stream()
         .filter(p -> p.getName().equals(usingProductName))
         .findFirst().get().getPrice();
-    return BigDecimal.ZERO.subtract(productPrice.setScale(2, RoundingMode.HALF_UP).divide(
-        BigDecimal.valueOf(allUsesSize), RoundingMode.HALF_UP));
+    return BigDecimal.ZERO.subtract(productPrice.setScale(5, RoundingMode.HALF_UP).divide(
+        BigDecimal.valueOf(allUsesSize), RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
   }
 }
