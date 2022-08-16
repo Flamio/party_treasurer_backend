@@ -133,7 +133,7 @@ public class CalculationServiceImpl implements CalculationService {
 
     productMap.put(usingProductName,
         calcNewPrice(participantProductPrice, allUsesSize, dto.getProducts(),
-            usingProductName).setScale(5, RoundingMode.HALF_UP));
+            usingProductName).setScale(2, RoundingMode.HALF_UP));
   }
 
   private BigDecimal calcNewPrice(final BigDecimal participantProductPrice, long allUsesSize,
