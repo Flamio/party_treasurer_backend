@@ -17,6 +17,8 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class DutiesWithCalculationsDto {
+
   private List<CalculationsByParticipant> calculations;
   private List<Duty> duties;
+  private List<String> unusableProducts;
 }

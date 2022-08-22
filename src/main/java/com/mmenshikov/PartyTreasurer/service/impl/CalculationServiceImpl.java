@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CalculationServiceImpl implements CalculationService {
 
   @Override
@@ -60,11 +61,31 @@ public class CalculationServiceImpl implements CalculationService {
 
   @Override
   public DutiesWithCalculationsDto calcAll(final InputDto dto) {
+    var unused = findAndRemoveUnusableProducts(dto);
     var calculations = calcByParticipant(dto);
     var duties = calcDuties(calculations);
     return new DutiesWithCalculationsDto()
         .setCalculations(calculations)
-        .setDuties(duties);
+        .setDuties(duties)
+        .setUnusableProducts(unused);
+  }
+
+  private List<String> findAndRemoveUnusableProducts(final InputDto dto) {
+    var unusable = dto.getProducts()
+        .stream()
+        .map(Product::getName)
+        .filter(name -> dto.getUses().values().stream()
+            .flatMap(Collection::stream)
+            .noneMatch(name::equals))
+        .collect(Collectors.toList());
+
+    var filteredProducts = dto.getProducts()
+        .stream()
+        .filter(p -> unusable.stream().noneMatch(u -> u.equals(p.getName())))
+        .collect(Collectors.toList());
+
+    dto.setProducts(filteredProducts);
+    return unusable;
   }
 
   private void calcDutyByDebtor(Participant debtor,
@@ -114,6 +135,7 @@ public class CalculationServiceImpl implements CalculationService {
     var purchases = dto.getPurchases().get(participantName);
     var productMap = purchases == null ? new HashMap<String, BigDecimal>() : purchases
         .stream()
+        .filter(p -> dto.getProducts().stream().anyMatch(product -> product.getName().equals(p)))
         .collect(Collectors.toMap(s -> s,
             v -> dto.getProducts().stream().filter(product -> product.getName().equals(v))
                 .findFirst().get().getPrice()));

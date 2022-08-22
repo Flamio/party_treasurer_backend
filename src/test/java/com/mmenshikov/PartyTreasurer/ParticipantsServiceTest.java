@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -90,5 +91,92 @@ class ParticipantsServiceTest {
 
     Assertions.assertThat(duties)
         .isNotNull();
+
+    final var romaDuties = duties.stream().filter(duty -> duty.getFrom().equals("roma"))
+        .collect(Collectors.toList());
+
+    final var andrDuty = duties.stream().filter(duty -> duty.getFrom().equals("andr"))
+        .findFirst();
+
+    Assertions.assertThat(romaDuties.get(0).getDuty().intValue())
+        .isEqualTo(75);
+    Assertions.assertThat(romaDuties.get(0).getTo())
+        .isEqualTo("petya");
+
+    Assertions.assertThat(romaDuties.get(1).getDuty().intValue())
+        .isEqualTo(450);
+    Assertions.assertThat(romaDuties.get(1).getTo())
+        .isEqualTo("vasya");
+
+    Assertions.assertThat(andrDuty.get().getDuty().intValue())
+        .isEqualTo(25);
+    Assertions.assertThat(andrDuty.get().getTo())
+        .isEqualTo("vasya");
+
+  }
+
+  @Test
+  void unusedProductsTest() {
+    //arrange
+
+    var inputDto = new InputDto()
+        .setParticipants(List.of("petya", "vasya", "roma", "andr"))
+        .setProducts(List.of(new Product()
+                .setName("pivo")
+                .setPrice(BigDecimal.valueOf(100)),
+            new Product()
+                .setName("vino")
+                .setPrice(BigDecimal.valueOf(1000)),
+            new Product()
+                .setName("meat")
+                .setPrice(BigDecimal.valueOf(3000))))
+        .setPurchases(
+            Map.of("petya", Set.of("pivo"), "vasya", Set.of("vino"), "roma", Set.of("meat")))
+        .setUses(Map.of("petya", Set.of("pivo"), "vasya", Set.of("vino", "pivo"), "roma",
+            Set.of("vino", "pivo"), "andr", Set.of("pivo")));
+
+    //act
+    final var result = service.calcAll(inputDto);
+
+    final var duties = result.getDuties();
+
+    final var romaDuties = duties.stream().filter(duty -> duty.getFrom().equals("roma"))
+        .collect(Collectors.toList());
+
+    final var andrDuty = duties.stream().filter(duty -> duty.getFrom().equals("andr"))
+        .findFirst();
+
+    //assert
+    var meatExists = result.getCalculations()
+        .stream()
+        .flatMap(calculationsByParticipant ->
+            calculationsByParticipant
+                .getProductMap()
+                .keySet()
+                .stream())
+        .anyMatch(productName -> productName.equals("meat"));
+
+    Assertions.assertThat(meatExists)
+        .isFalse();
+
+    Assertions.assertThat(result.getUnusableProducts().size())
+        .isEqualTo(1);
+    Assertions.assertThat(result.getUnusableProducts().get(0))
+        .isEqualTo("meat");
+
+    Assertions.assertThat(romaDuties.get(0).getDuty().intValue())
+        .isEqualTo(75);
+    Assertions.assertThat(romaDuties.get(0).getTo())
+        .isEqualTo("petya");
+
+    Assertions.assertThat(romaDuties.get(1).getDuty().intValue())
+        .isEqualTo(450);
+    Assertions.assertThat(romaDuties.get(1).getTo())
+        .isEqualTo("vasya");
+
+    Assertions.assertThat(andrDuty.get().getDuty().intValue())
+        .isEqualTo(25);
+    Assertions.assertThat(andrDuty.get().getTo())
+        .isEqualTo("vasya");
   }
 }

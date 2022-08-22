@@ -6,6 +6,7 @@
 plugins {
     java
     `maven-publish`
+    id("org.springframework.boot") version "2.1.3.RELEASE"
 }
 
 repositories {
@@ -27,7 +28,15 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test:2.7.2")
     testCompileOnly("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+
     testImplementation("junit:junit:4.13.2")
+}
+
+
+val jar by tasks.getting(Jar::class) {
+    manifest {
+        attributes["Main-Class"] = "com.mmenshikov.PartyTreasurer.PartyTreasurerApplication"
+    }
 }
 
 group = "com.mmenshikov"
@@ -40,6 +49,7 @@ publishing {
         from(components["java"])
     }
 }
+
 
 tasks.withType<JavaCompile>() {
     options.encoding = "UTF-8"
